@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rotating Image Sphere</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #fefefe;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="sphereCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById("sphereCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = 150; // Sphere radius
+    const rotationSpeed = 0.009 ; // Rotation speed
+
+    const images = [
+  "images/Screenshot 2024-11-05 224516.png",
+  "images/Screenshot 2024-11-06 230917.png",
+  "images/Screenshot 2024-11-08 161702.png",
+  "images/Screenshot 2024-11-08 170646.png",
+  "images/Screenshot 2024-11-08 171042.png",
+  "images/Screenshot 2024-11-08 171216.png",
+  "images/Screenshot 2024-11-08 171250.png",
+  "images/SiteOffwhite.png",
+  "images/BEADbyPrint.png",
+  "images/Broadband Maps.png",
+  "images/collageAddisababa.png",
+  "images/download.png",
+  "images/IMG_8758.PNG",
+  "images/IMG_8759.PNG",
+  "images/IMG_8760.PNG",
+  "images/IMG_8764.PNG",
+  "images/IMG_8765.PNG",
+  "images/Layout2.png",
+  "images/Screenshot 2024-05-01 164712.png",
+  "images/Screenshot 2024-05-01 172746.png",
+  "images/Screenshot 2024-10-03 161010.png",
+  "images/Screenshot 2024-10-06 171355.png",
+  "images/Screenshot 2024-10-07 105401.png",
+  "images/Screenshot 2024-10-23 222933.png",
+  "images/Screenshot 2024-11-05 220724.png",
+  "images/Screenshot 2024-11-05 222426.png", 
+  "images/Tutorial7_RasterChange.png",
+  "images/Kitchen.jpeg",
+  "images/LivingRoom.jpeg",
+  "images/AddisAbaba2013.png",
+  "images/AddisAbaba2022.png"
+];
+
+    const spheres = [];
+    const loadedImages = [];
+    let imagesLoaded = 0;
+
+    // Load images
+    images.forEach((src, index) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        loadedImages[index] = img;
+        imagesLoaded++;
+        if (imagesLoaded === images.length) {
+          createSphere();
+          animate();
+        }
+      };
+    });
+
+    function createSphere() {
+      const numLat = 6; // Number of latitude layers
+      const numLon = 12; // Number of longitude slices
+      let imageIndex = 0;
+
+      for (let lat = 0; lat <= numLat; lat++) {
+        const theta = (lat / numLat) * Math.PI; // Latitude angle
+        for (let lon = 0; lon < numLon; lon++) {
+          const phi = (lon / numLon) * 2 * Math.PI; // Longitude angle
+
+          // Spherical coordinates
+          const x = radius * Math.sin(theta) * Math.cos(phi);
+          const y = radius * Math.sin(theta) * Math.sin(phi);
+          const z = radius * Math.cos(theta);
+
+          // Add the image to the sphere array
+          spheres.push({
+            x,
+            y,
+            z,
+            img: loadedImages[imageIndex % loadedImages.length]
+          });
+
+          imageIndex++;
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Rotate sphere
+      for (const sphere of spheres) {
+        // Rotate along the Y-axis
+        const angle = rotationSpeed;
+        const cosAngle = Math.cos(angle);
+        const sinAngle = Math.sin(angle);
+
+        const x = sphere.x * cosAngle - sphere.z * sinAngle;
+        const z = sphere.x * sinAngle + sphere.z * cosAngle;
+
+        sphere.x = x;
+        sphere.z = z;
+
+        // Project to 2D
+        const scale = 300 / (300 + z); // Perspective scale
+        const screenX = centerX + sphere.x * scale;
+        const screenY = centerY + sphere.y * scale;
+        const size = 50 * scale; // Image size based on depth
+
+        // Draw the image
+        ctx.drawImage(sphere.img, screenX - size / 2, screenY - size / 2, size, size);
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    // Resize canvas on window resize
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
